@@ -1,12 +1,12 @@
 /*
- * Write a program (C/C++) using TCP socket for wired network for following
+ * Write a program (C/C++) using TCP socket for wired network for following:
  * 1. Say Hello to each other
  * 2. File transfer
  * 3. Calculator (Arithmetic)
  * 4. Calculator (Trigonometry)
  * * * * * * * * * *
  * Input: ./tcp_server <port>
- * Output: Server running and echoes commands issued by client
+ * Output: Server running and echo commands issued by client
  * * * * * * * * * *
  */
 
@@ -19,13 +19,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cmath>
-#include "ssocket.h"
+#include "ssocket.h"		// Self implemented wrapper for server socket
 
 using namespace std;
 
 /* 
  * Because send() and recv() are not synchronous, 
- * A wrapper is written to make it synchronous.
+ * A wrapper is written to make them synchronous.
  */
 int send_sync(int sockfd, const char *data);
 int recv_sync(int sockfd, char *buffer);
@@ -245,7 +245,7 @@ void arith_trigo(int client_sockfd)
 		 	result_val = -255.0;
 		 	break;
 	}
-
+	// Convert int -> string -> const char* 
 	retval = send_sync(client_sockfd, to_string(result_val).c_str());
 }
 
@@ -267,7 +267,7 @@ void file_transfer(int client_sockfd)
   bzero(path,100);
 
   /*
-   * This code is to diplay files for a given path
+   * This code is to display files for a given path
    * File transfer code will be written after this code
    */
   if ((dir = opendir(getcwd(path, sizeof(path)))) != NULL) {

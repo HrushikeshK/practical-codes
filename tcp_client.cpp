@@ -1,5 +1,5 @@
 /*
- * Write a program (C/C++) using TCP socket for wired network for following
+ * Write a program (C/C++) using TCP socket for wired network for following:
  * 1. Say Hello to each other
  * 2. File transfer
  * 3. Calculator (Arithmetic)
@@ -14,13 +14,13 @@
 #include <strings.h>
 #include <string.h>
 #include <fstream>
-#include "csocket.h"
+#include "csocket.h"		// Self implemented wrapper for client socket
 
 using namespace std;
 
 /* 
  * Because send() and recv() are not synchronous, 
- * A wrapper is written to make it synchronous.
+ * A wrapper is written to make them synchronous.
  */
 int send_sync(int sockfd, const char *data);
 int recv_sync(int sockfd, char *buffer);
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	sockfd = client_sock.get_sockfd();
 	retval = client_sock.connect_client(argv[1], portno);
 
-	//bzero(buffer, 256);
+	bzero(buffer, 256);
 	retval = recv_sync(sockfd, buffer);
 	cout << buffer << endl;
 	retval = send_sync(sockfd, msg);
@@ -92,7 +92,6 @@ void init(int sockfd)
 }
 
 
-
 /* 
  * Simple Client-Server Hello World program
  */
@@ -108,6 +107,7 @@ void say_hello(int sockfd)
 	retval = recv_sync(sockfd, buffer);
 	cout << "Server: " << buffer << endl;
 }
+
 
 void file_transfer(int sockfd)
 {
@@ -143,7 +143,6 @@ void file_transfer(int sockfd)
   	/*
   	 * File transfer code starts here
   	 */
-
   	bzero(buffer, sizeof(buffer));
   	retval = recv_sync(sockfd, buffer);
   	if(!atoi(buffer)) {
@@ -256,6 +255,7 @@ int send_sync(int sockfd, const char *data)
 
 	return retval;
 }
+
 
 int recv_sync(int sockfd, char *buffer) 
 {
