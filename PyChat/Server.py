@@ -16,11 +16,14 @@ class WorkerThread(threading.Thread):
         self.username = ''
 
     def run(self):
+    	# Get username from client
         self.username = bytes.decode(self.s.recv(100))
         print('Username: {}'.format(self.username))
+        # Send welcome message
         self.s.send(str.encode('Welcome to char server! Enter !exit to close chat.'))
         while True:
             try:
+            	# Receive message from this client and broadcast it to all connected clients
                 data = bytes.decode(self.s.recv(100, socket.MSG_DONTWAIT))
                 if data:
                     if '!exit' in data:
@@ -33,6 +36,8 @@ class WorkerThread(threading.Thread):
                                 c.send(str.encode(data))
                             except (BrokenPipeError, ConnectionResetError) as e:
                                 pass
+            # If any error occurs for this client, it closed connection.
+            # Remove it from list and exit thread.
             except (BlockingIOError, ConnectionResetError, BrokenPipeError) as e:
                 if isinstance(e, ConnectionResetError) or isinstance(e, BrokenPipeError):
                     clients.remove(self.s)

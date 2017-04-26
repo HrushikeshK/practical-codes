@@ -10,27 +10,27 @@ stdin = os.open('/dev/fd/0', os.O_RDWR)
 HOST = socket.gethostbyname('localhost')
 PORT = 9091
 
+# Connect to server
 s = socket.socket()
 s.connect((HOST, PORT))
 
+# Send username
 username = input('Enter username: ')
 s.send(str.encode(username))
 
 prev_msg = ''
 
+# Read stdin, or socket whichever has data available
 while True:
     rdlist, wrlist, errlist = select.select([sys.stdin, s], [], [])
-    if sys.stdin in rdlist:
+    if sys.stdin in rdlist:  # User entered a message. Send it to server.
         data = sys.stdin.readline()
         data1 = str.encode(data)
         s.send(data1)
         if '!exit' in data:
             break
+    # Data received from server, print it to client's console
     if s in rdlist:
-        os.write(stdin, b'\n')
-        prev_msg = sys.stdin.readline()
-        if len(prev_msg) == 0:
-            sys.stdin.buffer.raw.flush()
         incoming = bytes.decode(s.recv(100))
         sys.stdout.write('\r')
         sys.stdout.flush()

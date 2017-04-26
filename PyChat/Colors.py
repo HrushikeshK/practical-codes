@@ -1,3 +1,4 @@
+# Print colors to terminal
 class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
