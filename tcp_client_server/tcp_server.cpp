@@ -293,6 +293,7 @@ void file_transfer(int client_sockfd)
 
   /*
    * File Transfer code starts here
+   * Currently it works for file size <= buffer size
    */
 
   	struct stat sb;
@@ -304,7 +305,7 @@ void file_transfer(int client_sockfd)
 	}
    
    	ifstream infile;
-	infile.open(path);
+	infile.open(buffer);
 
 	if (infile) {
 		infile.seekg(0,infile.end);

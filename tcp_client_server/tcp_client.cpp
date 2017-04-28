@@ -142,6 +142,7 @@ void file_transfer(int sockfd)
 
   	/*
   	 * File transfer code starts here
+     * Currently it works for file size <= buffer size
   	 */
   	bzero(buffer, sizeof(buffer));
   	retval = recv_sync(sockfd, buffer);
@@ -157,14 +158,10 @@ void file_transfer(int sockfd)
   	bzero(buffer, sizeof(buffer));
   	retval = recv_sync(sockfd, buffer);
 
-  	bzero(path, sizeof(path));
-  	cout << "Enter name for the new file" << endl;
-  	cin >> path;
-
-  	ofile.open(path);
+  	ofile.open(file_name);
   	if(ofile) {
    		ofile << buffer << endl;
-    	cout << "File " << path << " created..." << endl;
+    	cout << "File " << file_name << " created..." << endl;
   	}
   	ofile.close(); 
 
