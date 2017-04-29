@@ -21,6 +21,10 @@
 #include <cmath>
 #include "ssocket.h"		// Self implemented wrapper for server socket
 
+#include <string>
+#include <cstdio>
+#include <cerrno>
+
 using namespace std;
 
 /* 
@@ -293,7 +297,6 @@ void file_transfer(int client_sockfd)
 
   /*
    * File Transfer code starts here
-   * Currently it works for file size <= buffer size
    */
 
   	struct stat sb;
@@ -303,19 +306,66 @@ void file_transfer(int client_sockfd)
 		send_sync(client_sockfd,"0");
 		return;
 	}
-   
-   	ifstream infile;
-	infile.open(buffer);
 
-	if (infile) {
-		infile.seekg(0,infile.end);
-		int length = infile.tellg();
-		infile.seekg(0,infile.beg);
+	ifstream infile;
+	infile.open(buffer, ios::binary | ios::in);
 
-		cout << "Length: " << length << endl;
+	 if (infile) {
+  
+        std::string contents;
+        infile.seekg(0, std::ios::end);
+        contents.resize(infile.tellg());
+        infile.seekg(0, std::ios::beg);
+        infile.read(&contents[0], contents.size());
+        infile.close();
+    
+        cout << contents.size() << endl;
 
-		infile.read(buffer,length);
-		send_sync(client_sockfd,buffer);
-	}
+ 		cout << "Length: " << contents.size() << endl;
+
+        char length_char[10];
+        bzero(length_char, sizeof(length_char));
+        sprintf(length_char, "%d", contents.size());
+        send_sync(client_sockfd, length_char);
+
+        char *data_source = new char[contents.size()+1];
+
+        int bytes_sent = 0;
+        int byte_count = 0;
+        int index = 0;
+
+    /*
+     * Since we are also trying to send binary data (audio, video),
+     * we can't just read data and send data.
+     * Reason: Whenever we read the binary data in char[], the
+     * c-style string terminates whenever it finds null-character '\0'
+     * In order to avoid it, we send chunks of data at a time.
+     * A chunk equals one c-style string
+     */
+        while (byte_count < contents.size()) {
+            if (contents[byte_count] == '\0' || byte_count == contents.size() - 1) {
+                data_source[index] = contents[byte_count];
+
+                int msg_len = send_sync(client_sockfd, data_source);
+                bytes_sent += msg_len;
+                
+                // second condition is to check if last character to be sent is '\0'
+                if (byte_count != contents.size() - 1 || contents[contents.size() - 1] == '\0')
+                    ++bytes_sent;
+            
+                byte_count++;
+                index = 0;
+                bzero(data_source, contents.size()+1);
+            } else {
+                data_source[index] = contents[byte_count];
+                index++;
+                byte_count++;
+            }
+        }
+        delete[] data_source;
+
+        cout << "File transferred successfully" << endl;
+        cout << "Bytes sent: " << bytes_sent << endl;
+    }
 	infile.close();
 }

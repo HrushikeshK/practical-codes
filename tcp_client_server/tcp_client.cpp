@@ -142,7 +142,6 @@ void file_transfer(int sockfd)
 
   	/*
   	 * File transfer code starts here
-     * Currently it works for file size <= buffer size
   	 */
   	bzero(buffer, sizeof(buffer));
   	retval = recv_sync(sockfd, buffer);
@@ -154,18 +153,45 @@ void file_transfer(int sockfd)
   	}
 
   	ofstream ofile;
-  	
+
+
   	bzero(buffer, sizeof(buffer));
   	retval = recv_sync(sockfd, buffer);
+  	int length = atoi(buffer);
+  	cout << "Length Received: " << length << endl;
+  	char *data_source = new char[length];
 
-  	ofile.open(file_name);
-  	if(ofile) {
-   		ofile << buffer << endl;
-    	cout << "File " << file_name << " created..." << endl;
-  	}
+  	ofile.open(file_name, ios::binary | ios::out);
+  	
+  	int bytes_recv = 0;
+  	
+  	do {
+  		bzero(data_source, length);
+  		int msg_len = recv_sync(sockfd, data_source);
+  		bytes_recv += msg_len;
+
+  		if (bytes_recv != length) {
+  			data_source[msg_len] = '\0';
+  			bytes_recv++;	// need to consider "\0" explicitly
+  		}
+  		
+  		if(ofile) {
+  			// need to consider "\0" explicitly
+   			if (bytes_recv != length)
+   				ofile.write(data_source, msg_len+1);
+   			else
+   				ofile.write(data_source, msg_len);
+   		} else {
+  			cout << "Unbale to write data" << endl;
+   		}
+
+  	} while (bytes_recv < length);
+
+  	cout << "File " << file_name << " created..." << endl;
+  	cout << "Total bytes received: " << bytes_recv << endl;
+
+	delete[] data_source;
   	ofile.close(); 
-
-
 }
 
 /* 
@@ -260,6 +286,7 @@ int recv_sync(int sockfd, char *buffer)
 	bzero(msg_size, sizeof(msg_size));
 
 	int retval = recv(sockfd, msg_size, sizeof(msg_size), 0);
+	
 	if (retval < 0) {
 		cout << "Error receving msg size" << endl;
 		exit(0);
@@ -267,6 +294,7 @@ int recv_sync(int sockfd, char *buffer)
 
 	bzero(buffer, sizeof(buffer));
 	retval = recv(sockfd, buffer, atoi(msg_size), 0);
+
 	if (retval < 0) {
 		cout << "Error receving message" << endl;
 		exit(0);
