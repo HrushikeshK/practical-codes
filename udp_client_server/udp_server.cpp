@@ -235,17 +235,21 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
         while (byte_count < contents.size()) {
             if (contents[byte_count] == '\0' || byte_count == contents.size() - 1) {
                 data_source[index] = contents[byte_count];
-    
-                // TODO: convert '\0' to one byte that I can send
 
-                bytes_sent += send_sync(fd, data_source, addr, len);
+                int msg_len = send_sync(fd, data_source, addr, len);
+                bytes_sent += msg_len;
+                
+                // second condition is to check if last character to be sent is '\0'
+                if (byte_count != contents.size() - 1 || contents[contents.size() - 1] == '\0')
+                    ++bytes_sent;
 
+                // Need to make transfer synchronous
                 bzero(ack, sizeof(ack));
-                recv_sync(fd, ack, addr, len);
-                cout << "Bytes sent: " << bytes_sent << ", Remain: " << contents.size() - byte_count << endl;
+                recv_sync(fd, ack, addr, len); 
+                     
+                cout << "Bytes sent: " << bytes_sent << ", Remain: " << contents.size() - bytes_sent << endl;
             
                 byte_count++;
-
                 index = 0;
                 bzero(data_source, contents.size()+1);
             } else {

@@ -16,6 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -169,6 +170,7 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
 
   	ofstream ofile;
 
+
   	bzero(buffer, sizeof(buffer));
   	retval = recv_sync(fd, buffer, addr, len);
   	int length = atoi(buffer);
@@ -191,17 +193,25 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
   		bzero(data_source, length);
   		int msg_len = recv_sync(fd, data_source, addr, len);
   		bytes_recv += msg_len;
+
+  		// Need to make transfer synchronous
   		send_sync(fd, ack, addr, len);
   		cout << "bytes Received: " << bytes_recv << endl;
-  		string data(data_source);
+
   		if (bytes_recv != length) {
+  			data_source[msg_len] = '\0';
   			bytes_recv++;	// need to consider "\0" explicitly
   		}
   		
-  		if(ofile) 
-   			ofile << data;
-  		else 
+  		if(ofile) {
+  			// need to consider "\0" explicitly
+   			if (bytes_recv != length)
+   				ofile.write(data_source, msg_len+1);
+   			else
+   				ofile.write(data_source, msg_len);
+   		} else {
   			cout << "Unbale to write data" << endl;
+   		}
 
   	} while (bytes_recv < length);
 
