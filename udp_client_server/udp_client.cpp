@@ -15,8 +15,6 @@
 #include <strings.h>
 #include <string.h>
 #include <unistd.h>
-#include <fstream>
-#include <vector>
 
 using namespace std;
 
@@ -196,7 +194,6 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
 
   		// Need to make transfer synchronous
   		send_sync(fd, ack, addr, len);
-  		cout << "bytes Received: " << bytes_recv << endl;
 
   		if (bytes_recv != length) {
   			data_source[msg_len] = '\0';
@@ -216,6 +213,7 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
   	} while (bytes_recv < length);
 
   	cout << "File " << file_name << " created..." << endl;
+  	cout << "Total bytes Received: " << bytes_recv << endl;
 
 	delete[] data_source;
   	ofile.close(); 

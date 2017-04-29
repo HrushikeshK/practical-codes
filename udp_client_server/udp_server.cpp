@@ -102,7 +102,7 @@ int send_sync(int fd, char* msg, struct sockaddr *addr, socklen_t len)
 	}
 
 	retval = sendto(fd, msg, strlen(msg), 0, addr, len);
-    cout << "Size: " << strlen(msg) << endl;
+
 	if (retval < 0) {
 		perror("Error sendto");
 		exit(0);
@@ -190,7 +190,7 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
    	ifstream infile;
 	infile.open(buffer, ios::binary | ios::in);
 
-	 if (infile) {
+	if (infile) {
   
         std::string contents;
         infile.seekg(0, std::ios::end);
@@ -212,7 +212,6 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
 
         int bytes_sent = 0;
         int byte_count = 0;
-        int byte_count_index = 0;
         int index = 0;
         char ack[2];
 
@@ -245,9 +244,7 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
 
                 // Need to make transfer synchronous
                 bzero(ack, sizeof(ack));
-                recv_sync(fd, ack, addr, len); 
-                     
-                cout << "Bytes sent: " << bytes_sent << ", Remain: " << contents.size() - bytes_sent << endl;
+                recv_sync(fd, ack, addr, len);                 
             
                 byte_count++;
                 index = 0;
@@ -259,6 +256,8 @@ void file_transfer(int fd, struct sockaddr *addr, socklen_t len)
             }
         }
         delete[] data_source;
+        cout << "File transferred successfully" << endl;
+        cout << "Total bytes sent: " << bytes_sent << endl;
     }
 	infile.close();
 }
